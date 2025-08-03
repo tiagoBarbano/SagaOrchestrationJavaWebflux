@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 30s  
+  
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'app-granian'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['app-granian:8000']
+  - job_name: 'webflux-app'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['webflux-app:8080']      
+  - job_name: 'app-fastify'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['app-fastify:3000']
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis_exporter:9121']
+  - job_name: "mongodb"
+    static_configs:
+      - targets: ["mongodb_exporter:9216"]
+  - job_name: 'tempo'
+    static_configs:
+      - targets: ['tempo:3200']      

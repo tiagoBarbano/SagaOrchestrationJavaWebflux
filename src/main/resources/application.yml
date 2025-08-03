@@ -1,0 +1,38 @@
+# Conversion to YAML from Properties formar report
+# Errors:
+# - Direct assignment 'spring=' can not be combined with sub-property assignment 'spring.application...'. Direct assignment is dropped!
+spring:
+    application:
+        name: orchestration
+    data:
+        mongodb:
+            uri: mongodb://localhost:27017/sagadb
+    rabbitmq: 
+        host: localhost
+        port: 5672
+        username: guest
+        password: guest
+
+rabbitmq:
+    exchange: teste
+    routing-keys:
+        queue-proposta-emissao-automovel: proposta-emissao-automovel
+        queue-emitir-proposta-automovel: emitir-proposta-automovel
+        queue-proposta-automovel-transmitida: proposta-automovel-transmitida
+        queue-status-emissao-proposta: status-emissao-proposta                        
+
+springwolf:
+    docket:
+        info:
+            title: Saga Orchestration API
+            version: '1.0.0'
+            description: AsyncAPI docs for saga orchestration
+        base-package: com.saga.orchestration
+        servers:
+            amqp:
+                protocol: amqp
+                host: localhost:5672
+    plugin:
+        amqp:
+            publishing: 
+                enabled: true

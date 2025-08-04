@@ -7,20 +7,95 @@ spring:
     data:
         mongodb:
             uri: mongodb://localhost:27017/sagadb
+        redis:
+            host: localhost
+            port: 6379
+            timeout: 2000ms
     rabbitmq: 
         host: localhost
         port: 5672
         username: guest
         password: guest
+    cache:
+        type: redis
+        redis:
+            time-to-live: 600000 # 10 minutos
+            cache-null-values: false
+    security:
+        user:
+            name: admin
+            password: admin123
 
-rabbitmq:
-    exchange: teste
-    routing-keys:
-        queue-proposta-emissao-automovel: proposta-emissao-automovel
-        queue-emitir-proposta-automovel: emitir-proposta-automovel
-        queue-proposta-automovel-transmitida: proposta-automovel-transmitida
-        queue-status-emissao-proposta: status-emissao-proposta                        
+# Configurações de saga
+saga:
+    engine:
+        max-retries: 3
+        timeout: 30s
+        batch-size: 100
+        enable-circuit-breaker: true
+        enable-rate-limiting: true
+        enable-sanitization: true
+    monitoring:
+        enabled: true
+        metrics-prefix: "saga"
+    rate-limit:
+        default-requests: 100
+        default-window: 60
+    connection-pool:
+        mongo:
+            max-connections: 100
+            min-connections: 5
+        rabbit:
+            max-connections: 50
+            min-connections: 2
+    sharding:
+        enabled: true
+        strategy: HASH_BASED
+    load-balancing:
+        enabled: true
+        strategy: ROUND_ROBIN
+    partitioning:
+        enabled: true
+        strategy: TENANT_BASED
 
+# Configurações do Resilience4j
+resilience4j:
+    circuitbreaker:
+        instances:
+            saga-engine:
+                sliding-window-size: 10
+                minimum-number-of-calls: 5
+                failure-rate-threshold: 50
+                wait-duration-in-open-state: 60s
+                permitted-number-of-calls-in-half-open-state: 3
+    ratelimiter:
+        instances:
+            saga-rate-limiter:
+                limit-for-period: 100
+                limit-refresh-period: 60s
+                timeout-duration: 5s
+
+# Configurações do Spring Cloud
+spring:
+    cloud:
+        config:
+            enabled: false
+
+# Configurações do Actuator
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info,metrics,prometheus
+    endpoint:
+        health:
+            show-details: always
+    metrics:
+        export:
+            prometheus:
+                enabled: true
+
+# Configurações do Springwolf
 springwolf:
     docket:
         info:
@@ -36,3 +111,30 @@ springwolf:
         amqp:
             publishing: 
                 enabled: true
+
+# Configurações do RabbitMQ
+rabbitmq:
+    exchange: teste
+    routing-keys:
+        queue-proposta-emissao-automovel: proposta-emissao-automovel
+        queue-emitir-proposta-automovel: emitir-proposta-automovel
+        queue-proposta-automovel-transmitida: proposta-automovel-transmitida
+        queue-status-emissao-proposta: status-emissao-proposta
+
+# Configurações de logging
+logging:
+    level:
+        com.saga.orchestration: INFO
+        com.saga.orchestration.saga: INFO
+        com.saga.orchestration.exception: ERROR
+        com.saga.orchestration.security: INFO
+        com.saga.orchestration.resilience: INFO
+        com.saga.orchestration.batch: INFO
+        com.saga.orchestration.sharding: INFO
+        com.saga.orchestration.loadbalancer: INFO
+        com.saga.orchestration.partitioning: INFO
+        com.saga.orchestration.cache: DEBUG
+        com.saga.orchestration.performance: DEBUG
+    pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
